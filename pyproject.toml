@@ -1,17 +1,20 @@
 [project]
-name = "python-project-template"
+name = "sparse-vae"
 version = "1.0.0"
-description = "A template for Python projects. Contains a basic project structure and setup. Includes uv, ruff, and pyrefly"
+description = "A sparse variational autoencoder implemented in PyTorch."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "click>=8.2.1",
+    "torch>=2.8.0",
+]
 
 [tool.pyrefly]
 project-includes = ["**/*"]
 project-excludes = ["**/node_modules", "**/__pycache__", "**/*venv/**/*"]
 
 [project.scripts]
-start = "project.__main__:main"
+vae = "sparse_vae.__main__:main"
 
 [tool.uv]
 package = true
