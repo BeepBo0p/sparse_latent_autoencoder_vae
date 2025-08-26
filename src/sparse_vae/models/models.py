@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class SimpleAutoEncoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, latent_dim):
+    def __init__(self, input_dim: int, hidden_dim: int, latent_dim: int):
         super(SimpleAutoEncoder, self).__init__()
 
         self.encoder = nn.Sequential(
@@ -18,7 +18,7 @@ class SimpleAutoEncoder(nn.Module):
             nn.Linear(hidden_dim, input_dim),
         )
 
-    def forward(self, x):
+    def forward(self, x: th.Tensor) -> th.Tensor:
         z = self.encoder(x)
         y = self.decoder(z)
         return y
