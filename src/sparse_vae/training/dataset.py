@@ -1,52 +1,65 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, transforms
-import os
+import numpy as np
+from typing import Tuple, Optional, Union
 
-def create_mnist_dataset(root_dir="./data", batch_size=128, train=True, download=True):
+
+def create_mnist_dataset(
+    root_dir: str = "./data",
+    batch_size: int = 128,
+    train: bool = True,
+    download: bool = True,
+) -> DataLoader:
     """
     Create an MNIST dataset loader.
-    
+
     Args:
         root_dir (str): Directory to store the dataset
         batch_size (int): Size of mini-batch
         train (bool): Whether to load the training or test set
         download (bool): Whether to download the dataset if not present
-        
+
     Returns:
         DataLoader: PyTorch DataLoader for MNIST dataset
     """
     # Define transforms
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))  # MNIST mean and std
-    ])
-    
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,)),  # MNIST mean and std
+        ]
+    )
+
     # Create dataset
     dataset = datasets.MNIST(
-        root=root_dir,
-        train=train,
-        download=download,
-        transform=transform
+        root=root_dir, train=train, download=download, transform=transform
     )
-    
+
     # Create data loader
     loader = DataLoader(
         dataset=dataset,
         batch_size=batch_size,
         shuffle=train,  # Shuffle only if training
-        num_workers=2
+        num_workers=2,
     )
-    
+
     return loader
+
 
 class MNISTDataset(Dataset):
     """Custom MNIST dataset that provides additional functionality if needed."""
-    
-    def __init__(self, root_dir="./data", train=True, transform=None, download=True):
+
+    def __init__(
+        self,
+        root_dir: str = "./data",
+        train: bool = True,
+        transform: Optional[transforms.Compose] = None,
+        download: bool = True,
+    ) -> None:
         """
         Initialize the MNIST dataset.
-        
+
         Args:
             root_dir (str): Directory to store the dataset
             train (bool): Whether to load the training or test set
@@ -57,25 +70,27 @@ class MNISTDataset(Dataset):
             root=root_dir,
             train=train,
             download=download,
-            transform=transform if transform else transforms.ToTensor()
+            transform=transform if transform else transforms.ToTensor(),
         )
-    
-    def __len__(self):
+
+    def __len__(self) -> int:
         """Return the size of the dataset."""
         return len(self.mnist)
-    
-    def __getitem__(self, idx):
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
         """Get a sample from the dataset."""
         image, label = self.mnist[idx]
         return image, label
 
 
-def print_mnist_image(image, threshold=0.5):
+def print_mnist_image(
+    image: Union[torch.Tensor, np.ndarray], threshold: float = 0.5
+) -> None:
     """
     Print an MNIST image to stdout using ASCII characters.
-    
+
     Args:
-        image (torch.Tensor): MNIST image tensor with shape [1, 28, 28]
+        image (torch.Tensor or np.ndarray): MNIST image tensor with shape [1, 28, 28]
         threshold (float): Value above which a pixel is considered 'on'
     """
     # Check if image is a tensor and convert to numpy if needed
@@ -83,28 +98,28 @@ def print_mnist_image(image, threshold=0.5):
         # Remove normalization if present (approximately)
         if image.min() < 0:
             image = image * 0.3081 + 0.1307
-        
+
         # Ensure proper dimensions and get the image data
         if image.dim() == 4:  # Batch of images
             image = image[0]  # Take the first image
         if image.dim() == 3 and image.size(0) == 1:  # Single channel image
             image = image.squeeze(0)
-        
+
         image = image.numpy()
-    
+
     # Map pixel intensities to ASCII characters
-    # Darker pixels get heavier characters
-    chars = '⬛⬜'
-    
+    chars = "⬛⬜"
+
     # Print the image
     for i in range(image.shape[0]):
-        row = ''
+        row = ""
         for j in range(image.shape[1]):
             # Map pixel value to character index
             pixel_value = image[i, j]
             char_idx = min(int(pixel_value * len(chars)), len(chars) - 1)
             row += chars[char_idx]
         print(row)
+
 
 if __name__ == "__main__":
     # Create a dataset and data loader for testing
