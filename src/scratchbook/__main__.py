@@ -1,6 +1,7 @@
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.optim as optim
@@ -26,7 +27,7 @@ device = th.device(
 batch_size = 64
 learning_rate = 0.001
 num_epochs = 20
-latent_dim = 20
+latent_dim = 10
 
 # ======================================================
 # Data
@@ -38,6 +39,9 @@ def create_paired_dataset(dataset):
     images = dataset.data.float() / 255.0
     images = images.unsqueeze(1)  # Add channel dimension
     labels = dataset.targets
+
+    # One-hot encode the labels
+    labels = nn.functional.one_hot(labels, num_classes=10).float()
 
     # For demonstration, we're pairing each image with itself
     # In a real scenario, you might want to pair based on specific criteria
@@ -91,7 +95,9 @@ class PairedVAE(nn.Module):
     def encode(self, x):
         x = self.encoder(x)
         mu = self.fc_mu(x)
+        # mu = nn.functional.tanh(mu)
         logvar = self.fc_logvar(x)
+        # logvar = nn.functional.tanh(logvar)
         return mu, logvar
 
     def reparameterize(self, mu, logvar):
@@ -123,7 +129,7 @@ class PairedVAE(nn.Module):
 
 
 # Loss function
-def loss_function(recon_x, x, mu, logvar):
+def loss_function(recon_x, x, mu, logvar, labels):
     # Extract the original images from the paired input
     original = x[:, 0]  # Shape: [batch_size, 1, 28, 28]
 
@@ -133,7 +139,11 @@ def loss_function(recon_x, x, mu, logvar):
     # KL divergence
     KLD = -0.5 * th.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-    return BCE + KLD
+    # Label BCE
+    softmax_mu = nn.functional.softmax(mu, dim=1)
+    label_BCE = nn.BCELoss(reduction="sum")(softmax_mu, labels)
+
+    return BCE + KLD + label_BCE
 
 
 # Training loop
@@ -141,12 +151,19 @@ def train():
     model.train()
     train_loss = 0
 
-    for batch_idx, (data, _) in enumerate(train_loader):
+    for batch_idx, (data, labels) in enumerate(train_loader):
         data = data.to(device)
+        labels = labels.to(device)
         optimizer.zero_grad()
 
         recon_batch, mu, logvar = model(data)
-        loss = loss_function(recon_batch, data, mu, logvar)
+        loss = loss_function(recon_batch, data, mu, logvar, labels)
+
+        # Print out a single mu sample
+        if batch_idx % 100 == 0:
+            with np.printoptions(precision=2, suppress=True):
+                print(f"{mu[0].shape}")
+                print(f"Mu sample: {mu[0].detach().cpu().numpy()}")
 
         loss.backward()
         train_loss += loss.item()
@@ -166,11 +183,12 @@ def test():
     test_loss = 0
 
     with th.no_grad():
-        for batch_idx, (data, _) in enumerate(test_loader):
+        for batch_idx, (data, labels) in enumerate(test_loader):
             data = data.to(device)
+            labels = labels.to(device)
 
             recon_batch, mu, logvar = model(data)
-            loss = loss_function(recon_batch, data, mu, logvar)
+            loss = loss_function(recon_batch, data, mu, logvar, labels)
 
             test_loss += loss.item()
 
