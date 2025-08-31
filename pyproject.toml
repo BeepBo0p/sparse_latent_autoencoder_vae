@@ -6,9 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.2.1",
+    "matplotlib>=3.10.6",
     "numpy>=2.3.2",
     "torch>=2.8.0",
     "torchvision>=0.23.0",
+    "tqdm>=4.67.1",
 ]
 
 [tool.pyrefly]
@@ -17,6 +19,7 @@ project-excludes = ["**/node_modules", "**/__pycache__", "**/*venv/**/*"]
 
 [project.scripts]
 vae = "sparse_vae.__main__:main"
+test = "scratchbook.__main__:main"
 
 [tool.uv]
 package = true

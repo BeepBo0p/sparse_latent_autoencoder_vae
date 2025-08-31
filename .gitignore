@@ -13,3 +13,5 @@ wheels/
 
 # Data files
 data/
+
+results/
