@@ -162,8 +162,9 @@ def train():
         # Print out a single mu sample
         if batch_idx % 100 == 0:
             with np.printoptions(precision=2, suppress=True):
-                print(f"{mu[0].shape}")
-                print(f"Mu sample: {mu[0].detach().cpu().numpy()}")
+                # print(f"{mu[0].shape}")
+                # print(f"Mu sample: {mu[0].detach().cpu().numpy()}")
+                pass
 
         loss.backward()
         train_loss += loss.item()
