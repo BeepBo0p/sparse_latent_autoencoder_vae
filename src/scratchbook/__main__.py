@@ -157,9 +157,7 @@ def train():
                 f"Train Batch: {batch_idx}/{len(train_loader)} Loss: {loss.item() / len(data):.6f}"
             )
 
-    print(
-        f"====> Epoch: {epoch} Average loss: {train_loss / len(train_loader.dataset):.4f}"
-    )
+    print(f"====> Epoch: {epoch} Average loss: {train_loss / len(train_dataset):.4f}")
 
 
 # Testing loop
@@ -176,7 +174,7 @@ def test():
 
             test_loss += loss.item()
 
-    test_loss /= len(test_loader.dataset)
+    test_loss /= len(test_dataset)
     print(f"====> Test set loss: {test_loss:.4f}")
     return test_loss
 
